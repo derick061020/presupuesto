@@ -1,0 +1,44 @@
+name: Build unsigned iOS IPA
+
+# Genera un IPA SIN firmar en un runner macOS de GitHub (gratis).
+# No necesita cuenta de desarrollador de Apple ni certificados.
+# Lánzalo a mano desde la pestaña "Actions" (workflow_dispatch) o con cada push a main.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.5
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (sin firmar)
+        run: flutter build ios --release --no-codesign
+
+      - name: Empaquetar IPA sin firmar
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/Runner.app
+          zip -r9 presupuesto-unsigned.ipa Payload
+
+      - name: Subir IPA como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: presupuesto-unsigned-ipa
+          path: build/ios/iphoneos/presupuesto-unsigned.ipa
+          if-no-files-found: error
