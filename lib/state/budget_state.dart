@@ -205,12 +205,16 @@ class BudgetState extends ChangeNotifier {
   double get totalFixedPayments =>
       fixedPayments.fold(0.0, (s, p) => s + p.amount);
 
+  /// Pagos fijos ya realizados (marcados como hechos).
+  double get paidFixedPayments =>
+      fixedPayments.where((p) => p.paid).fold(0.0, (s, p) => s + p.amount);
+
   /// Gasto real acumulado del mes (suma de todos los gastos registrados).
   double get totalSpent => expenses.fold(0.0, (s, e) => s + e.amount);
 
-  /// Disponible tras los gastos reales, pagos fijos y ahorro fijo.
+  /// Disponible tras los gastos reales, pagos fijos ya hechos y ahorro fijo.
   double get availableMonthly =>
-      totalIncome - totalSpent - totalFixedPayments - fixedSavings;
+      totalIncome - totalSpent - paidFixedPayments - fixedSavings;
 
   /// Gasto del mes para una categoría.
   double spentForCategory(String categoryId) {
