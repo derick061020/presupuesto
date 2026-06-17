@@ -205,9 +205,12 @@ class BudgetState extends ChangeNotifier {
   double get totalFixedPayments =>
       fixedPayments.fold(0.0, (s, p) => s + p.amount);
 
-  /// Disponible tras presupuestar categorías, pagos fijos y ahorro fijo.
+  /// Gasto real acumulado del mes (suma de todos los gastos registrados).
+  double get totalSpent => expenses.fold(0.0, (s, e) => s + e.amount);
+
+  /// Disponible tras los gastos reales, pagos fijos y ahorro fijo.
   double get availableMonthly =>
-      totalIncome - totalBudgets - totalFixedPayments - fixedSavings;
+      totalIncome - totalSpent - totalFixedPayments - fixedSavings;
 
   /// Gasto del mes para una categoría.
   double spentForCategory(String categoryId) {
@@ -292,6 +295,17 @@ class BudgetState extends ChangeNotifier {
   void setFixedSavings(double value) {
     fixedSavings = value;
     _commit();
+  }
+
+  /// Retira [amount] del ahorro. Descuenta primero del acumulado y, si no
+  /// alcanza, del fijo. Devuelve lo realmente retirado (limitado al total).
+  double withdrawSavings(double amount) {
+    final taken = math.min(math.max(0.0, amount), totalSavings);
+    final fromAccumulated = math.min(taken, accumulatedSavings);
+    accumulatedSavings -= fromAccumulated;
+    fixedSavings -= taken - fromAccumulated;
+    _commit();
+    return taken;
   }
 
   /// Solo para pruebas: adelanta el ciclo un día (mueve el ancla atrás).

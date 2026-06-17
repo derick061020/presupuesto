@@ -80,6 +80,23 @@ class SavingsScreen extends StatelessWidget {
                               fontSize: 12)),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonalIcon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.22),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: state.totalSavings <= 0
+                          ? null
+                          : () => _withdraw(context, state),
+                      icon: const Icon(Icons.account_balance_wallet_outlined),
+                      label: const Text('Retirar ahorro',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -176,6 +193,23 @@ class SavingsScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _withdraw(BuildContext context, BudgetState state) async {
+    final r = await showNameAmountDialog(
+      context,
+      title: 'Retirar ahorro',
+      nameLabel: 'Motivo',
+      amountLabel: 'Monto a retirar',
+      initialName: 'Retiro',
+      initialAmount: state.totalSavings,
+    );
+    if (r == null) return;
+    final taken = state.withdrawSavings(r.amount);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Retiraste ${money(taken)} del ahorro')),
     );
   }
 }

@@ -193,7 +193,7 @@ class _SummaryHero extends StatelessWidget {
           Row(
             children: [
               _miniStat('Ingresos', state.totalIncome),
-              _miniStat('Presupuesto', state.totalBudgets),
+              _miniStat('Gastos', state.totalSpent),
               _miniStat('Pagos', state.totalFixedPayments),
             ],
           ),
