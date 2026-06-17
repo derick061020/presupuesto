@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/app_data.dart';
 import '../state/budget_state.dart';
 import '../theme.dart';
 import '../utils/money.dart';
@@ -34,6 +35,16 @@ class MonthlyScreen extends StatelessWidget {
             _SummaryHero(state: state),
             const SizedBox(height: 20),
 
+            const SectionTitle('Gastos del mes'),
+            if (state.expenses.isEmpty)
+              _emptyHint(context, 'Aún no registras gastos este mes.'),
+            for (final e in state.expenses.reversed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _ExpenseTile(state: state, expenseId: e.id),
+              ),
+
+            const SizedBox(height: 8),
             SectionTitle('Categorías', onAdd: () async {
               final r = await showNameAmountDialog(
                 context,
@@ -218,6 +229,52 @@ class _SummaryHero extends StatelessWidget {
           ],
         ),
       );
+}
+
+class _ExpenseTile extends StatelessWidget {
+  const _ExpenseTile({required this.state, required this.expenseId});
+  final BudgetState state;
+  final String expenseId;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final e = state.expenses.firstWhere((x) => x.id == expenseId);
+    final category = state.categories.firstWhere(
+      (c) => c.id == e.categoryId,
+      orElse: () => Category(id: '', name: 'Sin categoría', monthlyBudget: 0),
+    );
+
+    return SoftCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          CircleIcon(category.isFood ? Icons.restaurant : Icons.sell,
+              color: scheme.primary),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(money(e.amount),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 16)),
+                Text(
+                  e.note.isEmpty ? category.name : '${category.name} · ${e.note}',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, size: 20, color: scheme.onSurfaceVariant),
+            onPressed: () => state.deleteExpense(e.id),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CategoryTile extends StatelessWidget {
