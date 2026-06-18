@@ -62,10 +62,23 @@ class DailyScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                IconButton.filledTonal(
-                  tooltip: 'Avanzar un día (prueba)',
-                  icon: const Icon(Icons.fast_forward),
-                  onPressed: () => state.debugAdvanceDay(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton.filledTonal(
+                      tooltip: 'Retroceder un día',
+                      icon: const Icon(Icons.fast_rewind),
+                      onPressed: state.canGoBackDay
+                          ? () => state.debugGoBackDay()
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      tooltip: 'Avanzar un día',
+                      icon: const Icon(Icons.fast_forward),
+                      onPressed: () => state.debugAdvanceDay(),
+                    ),
+                  ],
                 ),
               ],
             ),

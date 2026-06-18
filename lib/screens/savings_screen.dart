@@ -142,6 +142,17 @@ class SavingsScreen extends StatelessWidget {
 
             // ---- Acumulado ----
             SoftCard(
+              onTap: () async {
+                final r = await showNameAmountDialog(
+                  context,
+                  title: 'Ahorro acumulado',
+                  nameLabel: 'Etiqueta',
+                  amountLabel: 'Monto',
+                  initialName: 'Acumulado',
+                  initialAmount: state.accumulatedSavings,
+                );
+                if (r != null) state.setAccumulatedSavings(r.amount);
+              },
               child: Row(
                 children: [
                   CircleIcon(Icons.auto_graph, color: const Color(0xFF2193B0)),
@@ -153,7 +164,7 @@ class SavingsScreen extends StatelessWidget {
                         const Text('Ahorro acumulado',
                             style: TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 16)),
-                        Text('Crece solo con lo que no gastas',
+                        Text('Crece solo · toca para editar',
                             style: TextStyle(
                                 color: scheme.onSurfaceVariant, fontSize: 13)),
                       ],

@@ -111,8 +111,17 @@ class BudgetState extends ChangeNotifier {
   // Cálculo del ciclo
   // -------------------------------------------------------------------------
 
+  /// Normaliza a medianoche local (descarta la hora).
+  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// Días de calendario entre dos fechas, contando el cambio de día a las 00:00
+  /// hora local del teléfono. Robusto frente a cambios de horario (DST).
+  static int _daysBetween(DateTime from, DateTime to) =>
+      (_dateOnly(to).difference(_dateOnly(from)).inHours / 24).round();
+
   /// Días absolutos transcurridos desde el ancla (puede crecer más allá de 28).
-  int get _absoluteDay => DateTime.now().difference(_anchorDate).inDays;
+  /// El día cambia a las 00:00 de la zona horaria local, no a las 24h exactas.
+  int get _absoluteDay => _daysBetween(_anchorDate, DateTime.now());
 
   /// Día dentro del ciclo actual (0..27).
   int get currentCycleDay => _absoluteDay % cycleDays;
@@ -128,6 +137,9 @@ class BudgetState extends ChangeNotifier {
 
   /// Mes (ciclo) actual mostrado (1..n).
   int get displayMonth => (_absoluteDay ~/ cycleDays) + 1;
+
+  /// Si se puede retroceder un día (no estamos en el día 1 del primer ciclo).
+  bool get canGoBackDay => _absoluteDay > 0;
 
   /// Gasto de comida en un día del ciclo dado (0..27).
   double foodSpentOnCycleDay(int cycleDay) {
@@ -301,6 +313,12 @@ class BudgetState extends ChangeNotifier {
     _commit();
   }
 
+  /// Edita directamente el monto del ahorro acumulado.
+  void setAccumulatedSavings(double value) {
+    accumulatedSavings = math.max(0, value);
+    _commit();
+  }
+
   /// Retira [amount] del ahorro. Descuenta primero del acumulado y, si no
   /// alcanza, del fijo. Devuelve lo realmente retirado (limitado al total).
   double withdrawSavings(double amount) {
@@ -316,6 +334,17 @@ class BudgetState extends ChangeNotifier {
   void debugAdvanceDay() {
     _anchorDate = _anchorDate.subtract(const Duration(days: 1));
     _processRollover();
+    _commit();
+  }
+
+  /// Solo para pruebas: retrocede el ciclo un día (mueve el ancla adelante).
+  /// No baja del día 1 del primer ciclo.
+  void debugGoBackDay() {
+    if (_absoluteDay <= 0) return;
+    _anchorDate = _anchorDate.add(const Duration(days: 1));
+    if (_lastProcessedDay >= _absoluteDay) {
+      _lastProcessedDay = _absoluteDay - 1;
+    }
     _commit();
   }
 
